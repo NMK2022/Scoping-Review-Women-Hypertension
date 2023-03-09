@@ -1,0 +1,117 @@
+---
+title: "Map Figure"
+author: "Nita K"
+date: "2023-03-07"
+output: html_document
+---
+---
+
+
+## Dependencies
+
+This document depends on the following packages:
+
+```{r}
+library(devtools)
+library(usmap)
+library(ggspatial)
+library(ggplot2)
+library(readxl)
+library(tidyverse)
+```
+
+
+
+
+
+We will again hide this in future documents, but this shows how to set a default figure width and height, as well as setting plot margins. 
+
+
+```{r global-plot,warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(fig.width=5, fig.height=5, size="footnotesize",
+                      warning=FALSE, message=FALSE)
+knitr::knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) graphics::par(mar = c(5,5,1.5,1))
+})
+```
+
+
+
+## Import and Transform Data
+
+```{r}
+
+sr_df <- read_excel("2012-2016.xlsx")
+
+#### subset data frame with columns of interest
+sr_df2 <-  subset(sr_df, select = c("ID", "City", "State", "Lat", "Lon"))
+
+
+
+```
+
+
+
+
+## Plotting Local Studies 
+
+The label "chunk1" tells you which part of the code was running in case you have errors. If you compile this document you'll see it under the "R markdown" window on R studio. 
+
+
+```{r fig.height=5, fig.align="center"}
+
+###code for points from: https://stackoverflow.com/questions/66904254/usmap-in-r-plots-only-one-point-regardless-of-longitude-latitude
+
+####https://stackoverflow.com/questions/65691059/counting-number-of-times-each-row-is-duplicated-in-r
+
+count_state <- sr_df2 %>%
+  group_by(City, State) %>%
+  mutate(n = n())
+
+
+p1 <- plot_usmap("states", exclude = c("AK", "HI"), labels = TRUE, fill = "dark green") + 
+  coord_sf(crs = usmap::usmap_crs()) +
+  ggspatial::geom_spatial_point(data = count_state, aes(x = Lon, y = Lat, size = n ), crs = 4326) +
+  
+###########ADD IN COLORING BASED ON FREQUENCY COLUMN "n" #############################
+  
+  labs(title = "Local Studies Represented by U.S. States",
+       size = "Number of Studies") + 
+  theme(panel.background=element_blank())
+
+print(p1)
+
+
+ggsave("p1.pdf")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+Setting `cache=TRUE` makes it so that the code won't take as long to compile the second time. To see this, uncomment the code below and then run the document twice. 
+
+```{r longtime, cache=TRUE}
+Sys.sleep(10)
+```
+
+## Session information
+
+
+It is very useful to record the session information when performing analyses so you can collaborate with yourself in the future. 
+
+```{r session_info}
+sessionInfo()
+devtools::session_info()
+```
+
+
+It is also useful to compile the time the document was processed. This document was processed on: `r Sys.Date()`.
+
